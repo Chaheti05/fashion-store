@@ -1,0 +1,507 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:var(--surface-0);color:var(--text-primary)}
+.app{min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:var(--surface-2);border-bottom:0.5px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:10}
+.logo{font-size:18px;font-weight:500;display:flex;align-items:center;gap:8px;color:var(--text-primary)}
+.logo i{color:var(--text-accent);font-size:20px}
+.nav{display:flex;gap:4px}
+.nav-btn{background:none;border:none;padding:6px 14px;border-radius:var(--radius);cursor:pointer;font-size:14px;color:var(--text-secondary);font-family:var(--font-sans);transition:all 0.15s}
+.nav-btn:hover{background:var(--surface-1);color:var(--text-primary)}
+.nav-btn.active{background:var(--bg-accent);color:var(--text-accent);font-weight:500}
+.main{flex:1;padding:1.5rem;max-width:1100px;width:100%;margin:0 auto}
+.page{display:none}
+.page.active{display:block}
+
+/* Metrics */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:1.5rem}
+.metric-card{background:var(--surface-1);border-radius:var(--radius);padding:1rem;border:0.5px solid var(--border)}
+.metric-label{font-size:12px;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.04em}
+.metric-val{font-size:24px;font-weight:500;color:var(--text-primary)}
+.metric-sub{font-size:12px;color:var(--text-secondary);margin-top:2px}
+
+/* Table */
+.card{background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:1.5rem}
+.card-header{padding:1rem 1.25rem;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.card-title{font-size:15px;font-weight:500}
+.search-box{display:flex;align-items:center;gap:8px;background:var(--surface-1);border:0.5px solid var(--border);border-radius:var(--radius);padding:0 10px;flex:1;max-width:260px}
+.search-box i{color:var(--text-muted);font-size:16px}
+.search-box input{border:none;background:none;font-size:14px;color:var(--text-primary);font-family:var(--font-sans);outline:none;width:100%;padding:7px 0}
+.filter-select{background:var(--surface-1);border:0.5px solid var(--border);border-radius:var(--radius);padding:7px 10px;font-size:14px;color:var(--text-primary);font-family:var(--font-sans);cursor:pointer;outline:none}
+.btn-primary{background:var(--fill-accent);color:var(--on-accent);border:none;border-radius:var(--radius);padding:7px 14px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font-sans);display:flex;align-items:center;gap:6px;transition:background 0.15s}
+.btn-primary:hover{background:var(--fill-accent-hover)}
+.btn-ghost{background:none;border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:6px 12px;font-size:13px;cursor:pointer;font-family:var(--font-sans);color:var(--text-secondary);display:flex;align-items:center;gap:5px;transition:all 0.15s}
+.btn-ghost:hover{background:var(--surface-1);color:var(--text-primary)}
+.btn-danger{background:none;border:0.5px solid var(--border-danger);border-radius:var(--radius);padding:5px 10px;font-size:12px;cursor:pointer;font-family:var(--font-sans);color:var(--text-danger);transition:all 0.15s}
+.btn-danger:hover{background:var(--bg-danger)}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+th{font-size:12px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;padding:10px 1.25rem;text-align:left;border-bottom:0.5px solid var(--border);background:var(--surface-1)}
+td{padding:10px 1.25rem;font-size:14px;border-bottom:0.5px solid var(--border);color:var(--text-primary);vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface-1)}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:500;white-space:nowrap}
+.badge-success{background:var(--bg-success);color:var(--text-success)}
+.badge-warning{background:var(--bg-warning);color:var(--text-warning)}
+.badge-danger{background:var(--bg-danger);color:var(--text-danger)}
+.color-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle;flex-shrink:0}
+.actions-cell{display:flex;align-items:center;gap:6px}
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--text-muted)}
+.empty-state i{font-size:40px;display:block;margin-bottom:12px}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;display:flex;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.hidden{display:none}
+.modal{background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;width:100%;max-width:480px;padding:1.5rem;box-shadow:0 8px 32px rgba(0,0,0,0.18)}
+.modal-title{font-size:16px;font-weight:500;margin-bottom:1.25rem;display:flex;justify-content:space-between;align-items:center}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:20px;line-height:1;padding:2px}
+.modal-close:hover{color:var(--text-primary)}
+.form-row{margin-bottom:1rem}
+.form-row label{display:block;font-size:13px;color:var(--text-secondary);margin-bottom:5px}
+.form-row input,.form-row select,.form-row textarea{width:100%;background:var(--surface-1);border:0.5px solid var(--border);border-radius:var(--radius);padding:8px 12px;font-size:14px;color:var(--text-primary);font-family:var(--font-sans);outline:none}
+.form-row input:focus,.form-row select:focus{border-color:var(--border-accent)}
+.form-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:1.25rem;border-top:0.5px solid var(--border);padding-top:1rem}
+
+/* Store page */
+.store-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem}
+.product-card{background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color 0.15s}
+.product-card:hover{border-color:var(--border-accent)}
+.product-img{height:160px;display:flex;align-items:center;justify-content:center;font-size:48px;background:var(--surface-1)}
+.product-body{padding:1rem}
+.product-name{font-size:14px;font-weight:500;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.product-cat{font-size:12px;color:var(--text-muted);margin-bottom:8px}
+.product-price{font-size:18px;font-weight:500;color:var(--text-accent)}
+.product-stock{font-size:12px;color:var(--text-secondary);margin-top:4px}
+
+/* Tabs for inventory */
+.tabs{display:flex;gap:4px;border-bottom:0.5px solid var(--border);margin-bottom:1.5rem}
+.tab{padding:8px 16px;font-size:14px;cursor:pointer;color:var(--text-secondary);border-bottom:2px solid transparent;margin-bottom:-1px;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--font-sans)}
+.tab.active{color:var(--text-accent);border-bottom-color:var(--border-accent);font-weight:500}
+.section-title{font-size:16px;font-weight:500;margin-bottom:1rem}
+</style>
+
+<div class="app">
+<div class="topbar">
+  <div class="logo">
+    <i class="ti ti-hanger" aria-hidden="true"></i>
+    Drape & Co.
+  </div>
+  <div class="nav">
+    <button class="nav-btn active" onclick="switchPage('store')"><i class="ti ti-shopping-bag" aria-hidden="true"></i> Store</button>
+    <button class="nav-btn" onclick="switchPage('inventory')"><i class="ti ti-package" aria-hidden="true"></i> Inventory</button>
+    <button class="nav-btn" onclick="switchPage('analytics')"><i class="ti ti-chart-bar" aria-hidden="true"></i> Analytics</button>
+  </div>
+</div>
+
+<div class="main">
+  <!-- Store Page -->
+  <div class="page active" id="page-store">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px">
+      <div>
+        <h2 style="font-size:18px;font-weight:500">Browse collection</h2>
+        <p style="font-size:13px;color:var(--text-muted)" id="store-count"></p>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="search-box" style="max-width:200px">
+          <i class="ti ti-search" aria-hidden="true"></i>
+          <input type="text" placeholder="Search…" id="store-search" oninput="renderStore()">
+        </div>
+        <select class="filter-select" id="store-cat" onchange="renderStore()">
+          <option value="">All categories</option>
+        </select>
+      </div>
+    </div>
+    <div class="store-grid" id="store-grid"></div>
+  </div>
+
+  <!-- Inventory Page -->
+  <div class="page" id="page-inventory">
+    <div class="metrics" id="metrics"></div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Product inventory</span>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <div class="search-box">
+            <i class="ti ti-search" aria-hidden="true"></i>
+            <input type="text" placeholder="Search products…" id="inv-search" oninput="renderTable()">
+          </div>
+          <select class="filter-select" id="inv-cat" onchange="renderTable()">
+            <option value="">All categories</option>
+          </select>
+          <select class="filter-select" id="inv-status" onchange="renderTable()">
+            <option value="">All stock</option>
+            <option value="in">In stock</option>
+            <option value="low">Low stock</option>
+            <option value="out">Out of stock</option>
+          </select>
+          <button class="btn-primary" onclick="openAddModal()"><i class="ti ti-plus" aria-hidden="true"></i> Add product</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:220px">Product</th>
+              <th style="width:120px">Category</th>
+              <th style="width:80px">Price</th>
+              <th style="width:80px">Cost</th>
+              <th style="width:80px">Stock</th>
+              <th style="width:90px">Status</th>
+              <th style="width:110px">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inv-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analytics Page -->
+  <div class="page" id="page-analytics">
+    <p class="section-title">Overview</p>
+    <div class="metrics" id="analytics-metrics"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Stock by category</span></div>
+        <div style="padding:1rem" id="cat-breakdown"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Low stock alerts</span></div>
+        <div style="padding:1rem" id="low-stock-list"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:1rem">
+      <div class="card-header"><span class="card-title">Inventory value by category</span></div>
+      <div style="padding:1rem" id="cat-value-bars"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay hidden" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="modal-title-text">Add product</span>
+      <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="form-row">
+      <label>Product name</label>
+      <input type="text" id="f-name" placeholder="e.g. Slim Fit Chinos">
+    </div>
+    <div class="form-2col">
+      <div class="form-row">
+        <label>Category</label>
+        <select id="f-cat">
+          <option>Tops</option><option>Bottoms</option><option>Dresses</option>
+          <option>Outerwear</option><option>Footwear</option><option>Accessories</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Size</label>
+        <select id="f-size">
+          <option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option><option>One Size</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-2col">
+      <div class="form-row">
+        <label>Selling price (₹)</label>
+        <input type="number" id="f-price" min="0" placeholder="1299">
+      </div>
+      <div class="form-row">
+        <label>Cost price (₹)</label>
+        <input type="number" id="f-cost" min="0" placeholder="650">
+      </div>
+    </div>
+    <div class="form-2col">
+      <div class="form-row">
+        <label>Stock quantity</label>
+        <input type="number" id="f-qty" min="0" placeholder="50">
+      </div>
+      <div class="form-row">
+        <label>Low stock threshold</label>
+        <input type="number" id="f-threshold" min="0" placeholder="10">
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Color</label>
+      <input type="text" id="f-color" placeholder="e.g. Navy Blue">
+    </div>
+    <div class="form-row">
+      <label>SKU</label>
+      <input type="text" id="f-sku" placeholder="e.g. TOP-001">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveProduct()">Save product</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'drape_co_inventory';
+let products = [];
+let editingId = null;
+
+const EMOJIS = {Tops:'👕',Bottoms:'👖',Dresses:'👗',Outerwear:'🧥',Footwear:'👟',Accessories:'👜'};
+const COLORS_MAP = {
+  'White':'#f5f5f5','Black':'#222','Navy Blue':'#1a237e','Red':'#e53935',
+  'Green':'#388e3c','Blue':'#1976d2','Pink':'#e91e8c','Yellow':'#f9a825',
+  'Grey':'#757575','Gray':'#757575','Brown':'#6d4c41','Orange':'#f57c00','Purple':'#7b1fa2'
+};
+
+async function loadData(){
+  try{
+    const r=await window.storage.get(STORAGE_KEY);
+    if(r&&r.value) products=JSON.parse(r.value);
+  }catch(e){products=[];}
+  if(!products.length) products=defaultProducts();
+  render();
+}
+
+async function saveData(){
+  try{await window.storage.set(STORAGE_KEY,JSON.stringify(products));}catch(e){}
+}
+
+function defaultProducts(){
+  return [
+    {id:uid(),name:'Slim Fit Chinos',category:'Bottoms',size:'M',price:1499,cost:700,qty:45,threshold:10,color:'Navy Blue',sku:'BOT-001'},
+    {id:uid(),name:'Floral Wrap Dress',category:'Dresses',size:'S',price:2199,cost:980,qty:8,threshold:10,color:'Pink',sku:'DRS-001'},
+    {id:uid(),name:'Classic Oxford Shirt',category:'Tops',size:'L',price:1299,cost:550,qty:32,threshold:8,color:'White',sku:'TOP-001'},
+    {id:uid(),name:'Leather Ankle Boots',category:'Footwear',size:'7',price:3499,cost:1600,qty:0,threshold:5,color:'Brown',sku:'FTW-001'},
+    {id:uid(),name:'Quilted Puffer Jacket',category:'Outerwear',size:'XL',price:4999,cost:2200,qty:15,threshold:5,color:'Black',sku:'OUT-001'},
+    {id:uid(),name:'Canvas Tote Bag',category:'Accessories',size:'One Size',price:799,cost:300,qty:60,threshold:15,color:'Grey',sku:'ACC-001'},
+    {id:uid(),name:'Striped Crew Tee',category:'Tops',size:'M',price:699,cost:280,qty:7,threshold:10,color:'Blue',sku:'TOP-002'},
+    {id:uid(),name:'High-Rise Jeans',category:'Bottoms',size:'28',price:1899,cost:850,qty:22,threshold:8,color:'Blue',sku:'BOT-002'},
+  ];
+}
+
+function uid(){return Math.random().toString(36).slice(2,10);}
+
+function stockStatus(p){
+  if(p.qty===0) return 'out';
+  if(p.qty<=p.threshold) return 'low';
+  return 'in';
+}
+
+function statusBadge(p){
+  const s=stockStatus(p);
+  if(s==='out') return `<span class="badge badge-danger"><i class="ti ti-x" style="font-size:11px;margin-right:3px"></i>Out of stock</span>`;
+  if(s==='low') return `<span class="badge badge-warning"><i class="ti ti-alert-triangle" style="font-size:11px;margin-right:3px"></i>Low stock</span>`;
+  return `<span class="badge badge-success"><i class="ti ti-check" style="font-size:11px;margin-right:3px"></i>In stock</span>`;
+}
+
+function colorDot(c){
+  const hex=COLORS_MAP[c]||'#aaa';
+  return `<span class="color-dot" style="background:${hex};border:0.5px solid #0002"></span>`;
+}
+
+function render(){
+  renderMetrics();
+  populateCatFilters();
+  renderTable();
+  renderStore();
+  renderAnalytics();
+}
+
+function populateCatFilters(){
+  const cats=[...new Set(products.map(p=>p.category))].sort();
+  ['inv-cat','store-cat'].forEach(id=>{
+    const el=document.getElementById(id);
+    const val=el.value;
+    el.innerHTML='<option value="">All categories</option>';
+    cats.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;el.appendChild(o);});
+    el.value=val;
+  });
+}
+
+function renderMetrics(){
+  const total=products.length;
+  const inStock=products.filter(p=>stockStatus(p)==='in').length;
+  const low=products.filter(p=>stockStatus(p)==='low').length;
+  const out=products.filter(p=>stockStatus(p)==='out').length;
+  const totalVal=products.reduce((s,p)=>s+p.price*p.qty,0);
+  document.getElementById('metrics').innerHTML=`
+    <div class="metric-card"><div class="metric-label">Total products</div><div class="metric-val">${total}</div></div>
+    <div class="metric-card"><div class="metric-label">In stock</div><div class="metric-val" style="color:var(--text-success)">${inStock}</div></div>
+    <div class="metric-card"><div class="metric-label">Low stock</div><div class="metric-val" style="color:var(--text-warning)">${low}</div></div>
+    <div class="metric-card"><div class="metric-label">Out of stock</div><div class="metric-val" style="color:var(--text-danger)">${out}</div></div>
+    <div class="metric-card"><div class="metric-label">Inventory value</div><div class="metric-val">₹${totalVal.toLocaleString('en-IN')}</div></div>
+  `;
+}
+
+function filtered(){
+  const q=(document.getElementById('inv-search').value||'').toLowerCase();
+  const cat=document.getElementById('inv-cat').value;
+  const st=document.getElementById('inv-status').value;
+  return products.filter(p=>{
+    const mq=!q||p.name.toLowerCase().includes(q)||p.sku.toLowerCase().includes(q)||p.color.toLowerCase().includes(q);
+    const mc=!cat||p.category===cat;
+    const ms=!st||stockStatus(p)===st;
+    return mq&&mc&&ms;
+  });
+}
+
+function renderTable(){
+  const rows=filtered();
+  const tbody=document.getElementById('inv-tbody');
+  if(!rows.length){tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><i class="ti ti-search-off"></i>No products found</div></td></tr>`;return;}
+  tbody.innerHTML=rows.map(p=>`
+    <tr>
+      <td><div style="display:flex;align-items:center;gap:8px">${colorDot(p.color)}<div><div style="font-weight:500">${p.name}</div><div style="font-size:12px;color:var(--text-muted)">${p.sku} · ${p.size}</div></div></div></td>
+      <td><span style="background:var(--surface-1);border:0.5px solid var(--border);border-radius:var(--radius);padding:2px 8px;font-size:12px">${p.category}</span></td>
+      <td style="font-weight:500">₹${p.price.toLocaleString('en-IN')}</td>
+      <td style="color:var(--text-secondary)">₹${p.cost.toLocaleString('en-IN')}</td>
+      <td>${p.qty}</td>
+      <td>${statusBadge(p)}</td>
+      <td><div class="actions-cell"><button class="btn-ghost" onclick="openEditModal('${p.id}')"><i class="ti ti-edit" style="font-size:13px"></i> Edit</button><button class="btn-danger" onclick="deleteProduct('${p.id}')"><i class="ti ti-trash" style="font-size:13px"></i></button></div></td>
+    </tr>
+  `).join('');
+}
+
+function renderStore(){
+  const q=(document.getElementById('store-search').value||'').toLowerCase();
+  const cat=document.getElementById('store-cat').value;
+  const rows=products.filter(p=>{
+    const mq=!q||p.name.toLowerCase().includes(q)||p.category.toLowerCase().includes(q);
+    const mc=!cat||p.category===cat;
+    return mq&&mc&&p.qty>0;
+  });
+  document.getElementById('store-count').textContent=`${rows.length} item${rows.length!==1?'s':''} available`;
+  const g=document.getElementById('store-grid');
+  if(!rows.length){g.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><i class="ti ti-shirt-off"></i>No products available</div>`;return;}
+  g.innerHTML=rows.map(p=>`
+    <div class="product-card">
+      <div class="product-img">${EMOJIS[p.category]||'👔'}</div>
+      <div class="product-body">
+        <div class="product-name" title="${p.name}">${p.name}</div>
+        <div class="product-cat">${p.category} · ${p.size} · ${p.color}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div class="product-price">₹${p.price.toLocaleString('en-IN')}</div>
+          ${statusBadge(p)}
+        </div>
+        <div class="product-stock">${p.qty} left in stock</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderAnalytics(){
+  const totalRevPotential=products.reduce((s,p)=>s+p.price*p.qty,0);
+  const totalCostVal=products.reduce((s,p)=>s+p.cost*p.qty,0);
+  const totalItems=products.reduce((s,p)=>s+p.qty,0);
+  const margin=totalCostVal>0?((totalRevPotential-totalCostVal)/totalRevPotential*100).toFixed(1):0;
+  document.getElementById('analytics-metrics').innerHTML=`
+    <div class="metric-card"><div class="metric-label">Retail value</div><div class="metric-val">₹${(totalRevPotential/1000).toFixed(1)}k</div><div class="metric-sub">At selling price</div></div>
+    <div class="metric-card"><div class="metric-label">Cost value</div><div class="metric-val">₹${(totalCostVal/1000).toFixed(1)}k</div><div class="metric-sub">At cost price</div></div>
+    <div class="metric-card"><div class="metric-label">Avg. margin</div><div class="metric-val">${margin}%</div></div>
+    <div class="metric-card"><div class="metric-label">Total units</div><div class="metric-val">${totalItems}</div></div>
+  `;
+
+  const catMap={};
+  products.forEach(p=>{if(!catMap[p.category])catMap[p.category]={qty:0,val:0};catMap[p.category].qty+=p.qty;catMap[p.category].val+=p.price*p.qty;});
+  const cats=Object.keys(catMap).sort((a,b)=>catMap[b].qty-catMap[a].qty);
+  const maxQ=Math.max(...cats.map(c=>catMap[c].qty),1);
+  const maxV=Math.max(...cats.map(c=>catMap[c].val),1);
+
+  document.getElementById('cat-breakdown').innerHTML=cats.map(c=>`
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+        <span>${EMOJIS[c]||''} ${c}</span><span style="font-weight:500">${catMap[c].qty} units</span>
+      </div>
+      <div style="background:var(--surface-1);border-radius:999px;height:8px;overflow:hidden">
+        <div style="background:var(--fill-accent);height:100%;border-radius:999px;width:${Math.round(catMap[c].qty/maxQ*100)}%;transition:width 0.4s"></div>
+      </div>
+    </div>
+  `).join('');
+
+  const lowOnes=products.filter(p=>stockStatus(p)!=='in').sort((a,b)=>a.qty-b.qty);
+  const el=document.getElementById('low-stock-list');
+  if(!lowOnes.length){el.innerHTML=`<div class="empty-state"><i class="ti ti-circle-check" style="color:var(--text-success)"></i><div style="margin-top:6px;color:var(--text-secondary)">All products well stocked</div></div>`;return;}
+  el.innerHTML=lowOnes.slice(0,8).map(p=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--border)">
+      <div><div style="font-size:13px;font-weight:500">${p.name}</div><div style="font-size:12px;color:var(--text-muted)">${p.sku}</div></div>
+      <div style="text-align:right">${statusBadge(p)}<div style="font-size:12px;color:var(--text-muted);margin-top:2px">${p.qty} units left</div></div>
+    </div>
+  `).join('');
+
+  document.getElementById('cat-value-bars').innerHTML=cats.sort((a,b)=>catMap[b].val-catMap[a].val).map(c=>`
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+        <span>${EMOJIS[c]||''} ${c}</span><span style="font-weight:500">₹${catMap[c].val.toLocaleString('en-IN')}</span>
+      </div>
+      <div style="background:var(--surface-1);border-radius:999px;height:8px;overflow:hidden">
+        <div style="background:var(--fill-success);height:100%;border-radius:999px;width:${Math.round(catMap[c].val/maxV*100)}%;transition:width 0.4s"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function switchPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>{if(b.textContent.toLowerCase().includes(name)) b.classList.add('active');});
+  if(name==='analytics') renderAnalytics();
+}
+
+function openAddModal(){
+  editingId=null;
+  document.getElementById('modal-title-text').textContent='Add product';
+  ['f-name','f-price','f-cost','f-qty','f-threshold','f-color','f-sku'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-cat').value='Tops';
+  document.getElementById('f-size').value='M';
+  document.getElementById('f-threshold').value='10';
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+
+function openEditModal(id){
+  const p=products.find(x=>x.id===id);if(!p)return;
+  editingId=id;
+  document.getElementById('modal-title-text').textContent='Edit product';
+  document.getElementById('f-name').value=p.name;
+  document.getElementById('f-cat').value=p.category;
+  document.getElementById('f-size').value=p.size;
+  document.getElementById('f-price').value=p.price;
+  document.getElementById('f-cost').value=p.cost;
+  document.getElementById('f-qty').value=p.qty;
+  document.getElementById('f-threshold').value=p.threshold;
+  document.getElementById('f-color').value=p.color;
+  document.getElementById('f-sku').value=p.sku;
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+
+function closeModal(){document.getElementById('modal-overlay').classList.add('hidden');}
+
+function saveProduct(){
+  const name=document.getElementById('f-name').value.trim();
+  const price=parseFloat(document.getElementById('f-price').value)||0;
+  const cost=parseFloat(document.getElementById('f-cost').value)||0;
+  const qty=parseInt(document.getElementById('f-qty').value)||0;
+  const threshold=parseInt(document.getElementById('f-threshold').value)||10;
+  if(!name){alert('Please enter a product name.');return;}
+  const prod={
+    id:editingId||uid(),name,
+    category:document.getElementById('f-cat').value,
+    size:document.getElementById('f-size').value,
+    price,cost,qty,threshold,
+    color:document.getElementById('f-color').value.trim()||'Grey',
+    sku:document.getElementById('f-sku').value.trim()||'SKU-'+uid().slice(0,4).toUpperCase()
+  };
+  if(editingId){const i=products.findIndex(p=>p.id===editingId);products[i]=prod;}
+  else products.push(prod);
+  saveData();render();closeModal();
+}
+
+function deleteProduct(id){
+  if(!confirm('Delete this product? This cannot be undone.')) return;
+  products=products.filter(p=>p.id!==id);
+  saveData();render();
+}
+
+document.getElementById('modal-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+loadData();
+</script>
